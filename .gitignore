@@ -12,3 +12,5 @@ node_modules/
 dist/
 # Local cache / snapshots
 backend/data/
+# Demo recordings contain real agency data — never commit
+demo/
