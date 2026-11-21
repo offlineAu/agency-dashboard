@@ -1,0 +1,20 @@
+# Render Blueprint — one Docker web service with a persistent disk for the SQLite cache.
+services:
+  - type: web
+    name: agency-intelligence
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: INFLOWW_API_KEY
+        sync: false          # set in the Render dashboard; never commit
+      - key: INFLOWW_AGENCY_OID
+        sync: false
+      - key: DASHBOARD_ACCESS_TOKEN
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: ""

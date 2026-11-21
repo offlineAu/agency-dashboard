@@ -1,0 +1,4038 @@
+openapi: 3.1.0
+x-stoplight:
+  id: wnttpt5i2x0gz
+info:
+  title: Infloww API
+  version: '1.4'
+  summary: Explore Infloww's APIs to stream data to your dashboards.
+  description: |-
+    ## What is Infloww API?
+      The Infloww API is a REST-based tool designed to stream raw performance data directly into your internal dashboards or custom business intelligence (BI) tools.
+
+    ## API capabilities
+    To ensure data integrity and security, the Infloww API currently operates under the following parameters:
+      - **Read-only access:** Pull data for analysis without the risk of altering or deleting data within your Infloww account.
+      - **Integration limits:** Only data retrieval is currently avaialble. Third-party tools requiring write or "action" permissions, such as external AI chatbots or automation platforms like Zapier, are not supported.
+
+    ## Request headers
+    All API requests must include the following headers:
+
+      - **Authorization**: API key used for authentication. Provide the raw API key as the header value (do not include a "Bearer" prefix).
+      - **x-oid**: The agency identifier associated with your API key. ou can find this on the API key page in Infloww labeled as "Agency OID".
+
+      ⚠️ If your request fails, please include the `x-request-id` from the response headers when contacting support. This helps our team quickly locate and diagnose the issue.
+
+    ## Rate limiting
+    - **Agency limit**: A maximum of 1,000 QPM (queries per minmute) is enforced per agency, independent of the number of API key created. 
+
+    ## Available endpoints
+      - **Creator information:** General profile data for creators
+        - Connected creators: View lists of connected accounts
+        - All creators: Access comprehensive records, including deleted profiles
+      - **Revenue breakdown:** Detailed earnings of each creator
+        - Transaction details: Individual transaction logs
+        - Refund details
+      - **Transaction performance:** 
+        - Sales attribution: Detailed sales performance mapped down to the employee level
+        - *Note*: Fully supports all creators, including deleted profiles
+      - **Marketing analytics:** Performance statistics and metrics for promotional tools
+        - Tracking links
+        - Free trial links
+        - Profile promotions
+        - Link fans
+      - **Employee data:** Employee lists and employee-to-creator assignments
+        - Employee list: Complete directory of internal employees
+        - Employee's assigned creators: Employee-to-creator mapping and relationship data
+      - **Employee reports:** Sales performance and chat activity breakdowns by employee
+        - Sales statistics
+        - Chatting statistics
+      - **Creator reports:** Daily performance metrics and audience analytics
+        - Platform ranking
+        - Fan status: Breakdown of active and expired fans
+        - Subscriber growth: Tracking for new and renewed fans
+        - Renewal status: Fans with auto-renew turned on
+        - Subscription length
+        - Chat activity: Messages sent, fans chatted, and PPV performance
+        - Profile visitors
+      - **Invoice data:** 
+        - Monthly billing summary: Monthly billing and invoice summaries
+      - **Message analytics:** Records of automated messages and priority mass messages
+        - Automated messages
+        - Priority mass messages
+      - **System logs and manual adjustments:** 
+        - Creator status change log: Full history of creator status modifications
+        - Manual assignment details: Manual assignment records for sales data
+      - **Script analytics:** Script data and performance metrics
+        - Script data: Scripts, script tags, and script sequences
+        - Statistics: Performance metrics for scripts, tags, and sequences
+
+    ## Data retention and availability
+    The retention windows and data availability thresholds vary by endpoint, as detailed below:
+
+      Category | Endpoint | Retention Window
+      ---------|---------|----------
+      Creator information | All endpoints | Full historical data and maximum of last 1 year of deleted creators' data
+      Revenue breakdown | All endpoints | Maximum of last 1 year of historical data
+      Transaction performance | All endpoints | Maximum of last 1 year of historical data
+      Marketing analytics | Tracking links | Full historical data
+      Marketing analytics | Free trial links | Full historical data
+      Marketing analytics | Profile promotions | Last 10,000 campaigns from up to 365 days ago, similar to availability on OnlyFans
+      Marketing analytics | Link fans | Full historical data
+      Employee data | All endpoints | Full historical data
+      Employee reports | All endpoints | Maximum of last 1 year of historical data
+      Creator reports | All endpoints | Maximum of last 1 year of historical data
+      Message analytics | All endpoints | Full historical data
+      Invoice data | All endpoints | Maximum of last 1 year of historical data
+      Creator status log | All endpoints | From June 1, 2026 onwards and maximum of last 1 year of historical data
+      Manual assignment | All endpoints | Maximum of last 1 year of historical data
+      Script | All endpoints | Full historical data
+
+      ## Data permissions
+      API key permissions are configured upon creation and can be modified at any time. 
+      - **Creator access:** You must explicitly select which creators the API key can access.
+        - New or relinked creators are not automatically added to existing keys. You must manually edit the key's scope to include them.
+        - Only the `/v1/transaction-perf/details` endpoint supports querying all creators (including deleted or unlinked). All other `creatorId`-based endpoints return connected creators only.
+      - **Employee access:** You must specify which employee data the API key can access. If you select **All employees**, the key's scope will dynamically update to include new staff members automatically, eliminating the need for manual adjustments.  
+
+      ## Data synchronization and latency
+      Data moves in two stages: from source platforms (such as OnlyFans) into Infloww, and then to the API. Total latency depends on platform sync schedules plus a one-hour buffer for the API to process updates from the app.
+
+      ### How data flows
+      * **Stage 1 (Source platform to Infloww):** Infloww syncs data on a scheduled basis. General updates populate periodically, while heavier reporting data—such as employee and creator reports—can take up to 24 hours to reflect inside the app.
+      * **Stage 2 (Infloww to API):** Once data appears inside Infloww, it takes an additional one hour to become available via the API.
+
+      ## Your Infloww API key
+      Generate your API key directly from your Infloww account. [Learn how here](https://help.infloww.com/en/articles/596825-beta-infloww-api#h_99e8440d03).
+  contact:
+    name: ''
+    url: ''
+    email: ''
+  termsOfService: ''
+servers:
+  - url: 'https://openapi.infloww.com/'
+    description: Infloww API
+paths:
+  /v1/creators:
+    get:
+      summary: Connected creators
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      list:
+                        - id: 40001
+                          name: John Smith
+                          nickName: John
+                          userName: john_smith_01
+                          tagName: VIP
+                          createdTime: '2026-02-27T10:15:00Z'
+                          platformCode: OF
+                        - id: 40002
+                          name: Emily Brown
+                          nickName: Em
+                          userName: emily_b
+                          tagName: NewFan
+                          createdTime: '2026-02-26T18:45:00Z'
+                          platformCode: FANSLY
+                    cursor: eyJpZCI6NDAwMDJ9
+                    hasMore: true
+                    errorMessage: null
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: Unique identifier(Creator ID)
+                            name:
+                              type: string
+                              description: Creator name
+                            nickName:
+                              type: string
+                              description: Nickname
+                            userName:
+                              type: string
+                              description: Username
+                            tagName:
+                              type: string
+                              description: Tag name
+                            createdTime:
+                              type: string
+                              description: Creation time (unix timestamp in milliseconds)
+                            platformPid:
+                              type: integer
+                              x-stoplight:
+                                id: ginaejbla5lsw
+                              description: Platform performer ID
+                      platformCode:
+                        type: string
+                        x-stoplight:
+                          id: mlhu87taudm9e
+                        description: Platform code
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      list:
+                        - id: '001'
+                          name: test
+                          nickName: test
+                          userName: test
+                          tagName: test
+                          createdTime: '1772448735447'
+                      platformCode: Onlyfans
+                    cursor: '002'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-creators
+      x-stoplight:
+        id: zkm1pgckhg5vi
+      parameters:
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+      description: |-
+        Get a paginated list of connected creators.
+
+        > Please note there is a synchronization delay of up to 1 hour for OnlyFans data.
+    parameters: []
+  /v1/all-creators:
+    parameters: []
+    get:
+      summary: All creators
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      list:
+                        - id: 40001
+                          name: John Smith
+                          nickName: John
+                          userName: john_smith_01
+                          tagName: VIP
+                          status: Connected
+                          createdTime: '2026-02-27T10:15:00Z'
+                          platformPid: 100001
+                        - id: 40002
+                          name: Emily Brown
+                          nickName: Em
+                          userName: emily_b
+                          tagName: NewFan
+                          status: Deleted
+                          createdTime: '2026-02-26T18:45:00Z'
+                          platformPid: 100002
+                    cursor: eyJpZCI6NDAwMDJ9
+                    hasMore: true
+                    errorMessage: null
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: Unique identifier (Creator ID)
+                            name:
+                              type: string
+                              description: Creator name
+                            nickName:
+                              type: string
+                              description: Nickname
+                            userName:
+                              type: string
+                              description: Username
+                            tagName:
+                              type: string
+                              description: Tag name
+                            status:
+                              type: string
+                              description: Creator status
+                              format: enum
+                              enum:
+                                - connected
+                                - disconnected
+                                - not connect
+                                - 2FA
+                                - deleted
+                            platformPid:
+                              type: integer
+                              description: Platform performer ID
+                            createdTime:
+                              type: string
+                              description: Creation time (unix timestamp in milliseconds)
+                            deletedTime:
+                              type: string
+                              x-stoplight:
+                                id: e6oc00cjs75t0
+                              description: Delete time (unix timestamp in milliseconds)
+                      platformCode:
+                        type: string
+                        description: Platform code
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      list:
+                        - id: '001'
+                          name: test
+                          nickName: test
+                          userName: test
+                          tagName: test
+                          status: Connected
+                          createdTime: '1772448735447'
+                          platformPid: 100001
+                    cursor: '002'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-all-creators
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+      description: |-
+        Get a paginated list of all creators under your agency, including connected, disconnected, not connected, 2FA required, and deleted creators.
+
+        > This endpoint requires the "All Creators" scope permission. Unlike `/v1/creators`, it returns all creators regardless of their connection status.
+  /v1/transactions:
+    get:
+      summary: Transactions
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      list:
+                        - id: 10001
+                          transactionId: txn_20260227001
+                          fanId: fan_987654
+                          fanName: JohnDoe
+                          createdTime: '2026-02-27T15:30:00Z'
+                          type: tip
+                          tipSource: chat
+                          status: completed
+                          amount: 50
+                          fee: 5
+                          net: 45
+                          currency: USD
+                          platformCode: OF
+                    cursor: eyJpZCI6MTAwMDF9
+                    hasMore: true
+                    errorMessage: null
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: Unique identifier
+                            transactionId:
+                              type: string
+                              description: OnlyFans transaction ID
+                            fanId:
+                              type: string
+                              description: Fan id
+                            fanName:
+                              type: string
+                              description: Fan name
+                            platformPid:
+                              type: integer
+                              x-stoplight:
+                                id: wfdztx0zy2wtv
+                              description: Platform performer ID
+                            createdTime:
+                              type: string
+                              description: Creation time (unix timestamp in milliseconds)
+                            tipSource:
+                              type: string
+                              description: Tip source
+                              enum:
+                                - Profile
+                                - Post
+                                - Chat
+                                - Stream
+                                - Story
+                                - Unknown
+                              format: enum
+                            type:
+                              description: Transaction type
+                              type: string
+                              enum:
+                                - Subscription
+                                - Recurring Subscription
+                                - Tips
+                                - Messages
+                                - Referrals
+                                - Streams
+                                - Posts
+                                - Unknown
+                              format: enum
+                            status:
+                              type: string
+                              description: Transaction status
+                              enum:
+                                - loading
+                                - done
+                                - undo
+                                - pending_return
+                              format: enum
+                            amount:
+                              type: string
+                              description: Transaction amount (in the smallest unit of the currency)
+                            fee:
+                              type: string
+                              description: Fee amount (in the smallest unit of the currency)
+                            net:
+                              type: string
+                              description: Net amount (in the smallest unit of the currency)
+                            currency:
+                              type: string
+                              description: Currency code
+                      platformCode:
+                        type: string
+                        x-stoplight:
+                          id: 6wm7asogg5z1o
+                        description: Platform code
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - id: '001'
+                          transactionId: xxx
+                          fanId: onlyfans-02436724
+                          fanName: xxxx
+                          createdTime: '1750019015000'
+                          type: Messages
+                          status: loading
+                          amount: '7400'
+                          fee: '1480'
+                          net: '5920'
+                          currency: USD
+                        - id: '002'
+                          transactionId: xxx
+                          fanId: onlyfans-97572292
+                          fanName: Joseph· Anderson
+                          createdTime: '1750020601000'
+                          type: Messages
+                          status: loading
+                          amount: '13600'
+                          fee: '2720'
+                          net: '10880'
+                          currency: USD
+                        - id: '003'
+                          transactionId: xxx
+                          fanId: onlyfans-74521039
+                          fanName: Mary· Jones
+                          createdTime: '1750026171000'
+                          type: Messages
+                          status: loading
+                          amount: '12300'
+                          fee: '2460'
+                          net: '9840'
+                          currency: USD
+                    cursor: '001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-transactions
+      description: |-
+        Pull a paginated list of revenue transactions for your connected creators.
+
+        > When synchronizing OnlyFans data, there is a delay of up to 1 hour. Transaction orders with a "loading" status are synchronized every 12 hours.
+      x-stoplight:
+        id: 67mitxq4tbi9i
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/startTime'
+        - $ref: '#/components/parameters/endTime'
+        - $ref: '#/components/parameters/creatorId'
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/platformCode'
+    parameters: []
+  /v1/refunds:
+    parameters: []
+    get:
+      summary: Refunds
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      list:
+                        - id: 20001
+                          transactionId: txn_20260227002
+                          fanId: fan_123456
+                          paymentTime: '2026-02-27T14:20:00Z'
+                          refundTime: null
+                          paymentStatus: paid
+                          paymentAmount: 29.99
+                          transactionType: subscription
+                          currency: USD
+                        - id: 20002
+                          transactionId: txn_20260227003
+                          fanId: fan_789012
+                          paymentTime: '2026-02-27T15:05:00Z'
+                          refundTime: '2026-02-27T16:00:00Z'
+                          paymentStatus: refunded
+                          paymentAmount: 49.99
+                          transactionType: tip
+                          currency: USD
+                    hasMore: true
+                    cursor: eyJpZCI6MjAwMDJ9
+                    errorMessage: null
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: Unique identifier
+                            transactionId:
+                              type: string
+                              description: OnlyFans transaction ID
+                            fanId:
+                              type: string
+                              description: Fan ID
+                            paymentTime:
+                              type: string
+                              description: Transaction creation time (unix timestamp in milliseconds)
+                            refundTime:
+                              type: string
+                              description: Refund creation time (unix timestamp in milliseconds)
+                            paymentStatus:
+                              type: string
+                              description: Refund status
+                              enum:
+                                - undo
+                                - loading
+                                - done
+                              format: enum
+                            paymentAmount:
+                              type: number
+                              description: Refund amount (in the smallest unit of the currency)
+                            transactionType:
+                              type: string
+                              description: Transaction type
+                              enum:
+                                - tips
+                                - post
+                                - chat_messages
+                                - stream
+                                - subscribes
+                              format: enum
+                            currency:
+                              type: string
+                              description: Currency code
+                      platformCode:
+                        type: string
+                        x-stoplight:
+                          id: yjr1tl1liipto
+                        description: Platform code
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      list:
+                        - id: '20001'
+                          transactionId: txn_20260227002
+                          fanId: fan_123456
+                          paymentTime: '1772448037492'
+                          refundTime: '1772448038000'
+                          paymentStatus: undo
+                          paymentAmount: 3000
+                          transactionType: tips
+                          currency: USD
+                        - id: '20002'
+                          transactionId: txn_20260227003
+                          fanId: fan_789012
+                          paymentTime: '1772448735447'
+                          refundTime: '1772449035447'
+                          paymentStatus: undo
+                          paymentAmount: 4000
+                          transactionType: tips
+                          currency: USD
+                        - id: '20003'
+                          transactionId: txn_20260227004
+                          fanId: fan_345678
+                          paymentTime: '1772449135447'
+                          refundTime: '1772449535447'
+                          paymentStatus: undo
+                          paymentAmount: 5000
+                          transactionType: tips
+                          currency: USD
+                    hasMore: true
+                    cursor: '20002'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-refunds
+      x-stoplight:
+        id: otmqo0atc5lkt
+      parameters:
+        - $ref: '#/components/parameters/creatorId'
+        - $ref: '#/components/parameters/startTime'
+        - $ref: '#/components/parameters/endTime'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+      description: |-
+        Pull a paginated list of all refund amounts associated with a connected creator.
+
+        > When synchronizing OnlyFans data, there is a delay of up to 1 hour.
+  /v1/links:
+    get:
+      summary: 'Tracking links, free trial links and profile promotions'
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      list:
+                        - platformCode: OF
+                          linkType: profile
+                        - platformCode: FANSLY
+                          linkType: chat
+                    hasMore: true
+                    cursor: eyJwYWdlIjoxfQ==
+                    errorMessage: null
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      platformCode:
+                        type: string
+                        x-stoplight:
+                          id: s0h8m5r5jis2g
+                        description: Platform code
+                      linkType:
+                        type: string
+                        x-stoplight:
+                          id: jm8gge71u1bmz
+                        description: Link type
+                      list:
+                        type: array
+                        description: |
+                          The returned data object.
+
+                          **Important Association Rules**: The linkTypefield in this object indicates the specific data structure type for all elements in the listarray. The correspondences are as follows:
+                          When the `platformCode` is `"OnlyFans"` and the `linkType` is `"CAMPAIGN"`, each object in the list follows the `CampaignLinkModel` structure.
+                          When the `platformCode` is `"OnlyFans"` and the `linkType` is `"TRIAL"`, each object in the list follows the `TrialLinkModel` structure.
+                          When the `platformCode` is `"OnlyFans"` and the `linkType` is `"TRACKING"`, each object in the list follows the `TrackingLinkModel` structure.
+                        items:
+                          x-stoplight:
+                            id: lev1cbj5nxqu3
+                          oneOf:
+                            - title: CampaignLinkModel
+                              description: |-
+                                When the platformCode is OnlyFans and the linkType is CAMPAIGN, the following structure will be returned 
+                                CampaignLinkModel
+                              x-stoplight:
+                                id: 3kgz5u48g1k01
+                              x-internal: false
+                              properties:
+                                id:
+                                  type: string
+                                  description: Unique identifier
+                                message:
+                                  type: string
+                                  description: Link description
+                                type:
+                                  type: string
+                                  description: Target fan type
+                                  enum:
+                                    - new
+                                    - expired
+                                    - both
+                                  format: enum
+                                subCount:
+                                  type: integer
+                                  description: Current number of subscribers
+                                subLimit:
+                                  type: integer
+                                  description: Subscription limit (`0` means no limit)
+                                subDuration:
+                                  type: integer
+                                  description: Subscription duration (in days)
+                                discount:
+                                  type: integer
+                                  description: 'Discount percentage (e.g., `30` represents `30%`)'
+                                finishedFlag:
+                                  type: boolean
+                                  description: Link completion flag
+                                earningsGross:
+                                  type: integer
+                                  description: 'Gross earnings (in the smallest unit of the currency) '
+                                earningsNet:
+                                  type: integer
+                                  description: 'Net earnings (after deducting OnlyFans platform fees, in the smallest unit of the currency) '
+                                payingFansCount:
+                                  type: integer
+                                  description: Paying fans count (includes subscription earnings)
+                                currency:
+                                  type: string
+                                  description: Currency code
+                                createdTime:
+                                  type: string
+                                  description: Link creation time (unix timestamp in milliseconds)
+                                expiredTime:
+                                  type: string
+                                  description: 'Link expiration time (unix timestamp in milliseconds) '
+                                updatedTime:
+                                  type: string
+                                  description: Infloww last update time (Unix millisecond timestamp)
+                            - title: TrialLinkModel
+                              description: |-
+                                When the platformCode is OnlyFans and the linkType is TRIAL, the following structure will be returned 
+                                TrialLinkModel
+                              x-stoplight:
+                                id: 5rdh89kctg82s
+                              x-internal: false
+                              properties:
+                                id:
+                                  type: string
+                                  description: Unique identifier
+                                name:
+                                  type: string
+                                  description: Link name
+                                code:
+                                  type: string
+                                  description: |-
+                                    The URL is constructed by concatenating this `code` with the following format:
+
+                                    OF domain + current creator name + `code`
+
+                                    For example,
+                                    creator name: xxx, 
+                                    code:123
+
+                                    Link URL: `https://onlyfans.com/xxx/123`
+                                subDuration:
+                                  type: integer
+                                  description: Trial duration (in days)
+                                subLimit:
+                                  type: integer
+                                  description: Subscription limit (`0` means no limit)
+                                subCount:
+                                  type: integer
+                                  description: Current number of subscribers
+                                finishedFlag:
+                                  type: boolean
+                                  description: Link completion flag
+                                source:
+                                  type: string
+                                  description: Link source
+                                autoDefaultList:
+                                  type: boolean
+                                  description: |-
+                                    Whether to automatically move subscribed fans to a default list
+                                    - true: yes
+                                    - false: no
+                                defaultListName:
+                                  type: string
+                                  description: Default fan list name
+                                relTagNames:
+                                  type: array
+                                  description: Related tag names
+                                  items:
+                                    type: string
+                                spendClaim:
+                                  type: string
+                                  description: 'Percentage of fans who claimed a free trial that purchased subscriptions, spent on content, or gave tips'
+                                payingFansCount:
+                                  type: integer
+                                  description: 'Number of fans who purchased subscriptions, spent on content, or gave tips'
+                                earningsGross:
+                                  type: integer
+                                  description: Gross earnings (in the smallest unit of the currency)
+                                earningsNet:
+                                  type: integer
+                                  description: 'Net earnings (after deducting OnlyFans platform fees, in the smallest unit of the currency)'
+                                aepsGross:
+                                  type: number
+                                  description: Average gross earnings per subscriber (`EarningsGross` ÷ number of subscribers)
+                                aepsNet:
+                                  type: integer
+                                  description: Average net earnings per subscriber (`EarningsNet` ÷ number of subscribers)
+                                currency:
+                                  type: string
+                                  description: Currency code
+                                createdTime:
+                                  type: string
+                                  description: Link creation time (unix timestamp in milliseconds)
+                                expiredTime:
+                                  type: string
+                                  description: 'Link expiration time (unix timestamp in milliseconds) '
+                                updatedTime:
+                                  type: string
+                                  description: Infloww last update time (unix timestamp in milliseconds)
+                            - title: TrackingLinkModel
+                              description: |-
+                                When the platformCode is OnlyFans and the linkType is TRACKING, the following structure will be returned 
+                                TrackingLinkModel
+                              x-stoplight:
+                                id: jat4iu4pt3teu
+                              x-internal: false
+                              properties:
+                                id:
+                                  type: string
+                                  description: Unique identifier
+                                name:
+                                  type: string
+                                  description: Link name
+                                code:
+                                  type: string
+                                  description: |-
+                                    The URL is constructed by concatenating this `code` with the following format:
+
+                                    OF domain + current creator name + **'c'** + `code`
+
+                                    For example,
+                                    creator name: xxx, 
+                                    code:123
+
+                                    Link URL: `https://onlyfans.com/xxx/c123`
+                                clickCount:
+                                  type: integer
+                                  description: Click count
+                                subCount:
+                                  type: integer
+                                  description: Current number of subscribers
+                                finishedFlag:
+                                  type: boolean
+                                  description: Link completion flag
+                                source:
+                                  type: string
+                                  description: Link source
+                                autoDefaultList:
+                                  type: boolean
+                                  description: |-
+                                    Whether to automatically move subscribed fans to a default list
+                                    - true: yes
+                                    - false: no
+                                defaultListName:
+                                  type: string
+                                  description: Default fan list name
+                                relTagNames:
+                                  type: array
+                                  description: Related tag names
+                                  items:
+                                    type: string
+                                earningsGross:
+                                  type: integer
+                                  description: Gross earnings (in the smallest unit of the currency)
+                                earningsNet:
+                                  type: integer
+                                  description: 'Net earnings (after deducting OnlyFans platform fees, in the smallest unit of the currency)'
+                                payingFansCount:
+                                  type: integer
+                                  description: Number of fans who spent on content or gave tips
+                                subscriptionCVR:
+                                  type: string
+                                  description: Subscription conversion rate (percentage of clicks converted to subscribers)
+                                spendingCVR:
+                                  type: string
+                                  description: 'Spending conversion rate: Percentage of fans who spent on content or gave tips'
+                                epcGross:
+                                  type: integer
+                                  description: 'Earnings per click (gross, `EarningsGross` ÷ number of clicks)'
+                                epcNet:
+                                  type: number
+                                  description: 'Earnings per click (net, after deducting OnlyFans platform fees, `EarningsNet` ÷ number of clicks) '
+                                aepsGross:
+                                  type: integer
+                                  description: Average gross earnings per subscriber (`EarningsGross` ÷ number of subscribers)
+                                aepsNet:
+                                  type: integer
+                                  description: Average net earnings per subscriber (`EarningsNet` ÷ number of subscribers)
+                                currency:
+                                  type: string
+                                  description: currency
+                                createdTime:
+                                  type: string
+                                  description: Link creation time (unix timestamp in milliseconds)
+                                expiredTime:
+                                  type: string
+                                  description: 'Link expiration time (unix timestamp in milliseconds) '
+                                updatedTime:
+                                  type: string
+                                  description: Infloww last update time （unix timestamp in milliseconds）
+                          type: object
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results
+              examples:
+                CAMPAIGN Example:
+                  value:
+                    data:
+                      list:
+                        - id: '1001'
+                          message: Spring Promotion Campaign
+                          type: new
+                          subCount: 150
+                          subLimit: 500
+                          subDuration: 30
+                          discount: 25
+                          finishedFlag: false
+                          earningsGross: 150000
+                          earningsNet: 135000
+                          payingFansCount: 120
+                          currency: USD
+                          createdTime: '1772448037492'
+                          expiredTime: '1775040037492'
+                          updatedTime: '1772448037492'
+                    hasMore: true
+                    cursor: '1002'
+                TRIAL Example:
+                  value:
+                    data:
+                      list:
+                        - id: '2001'
+                          name: 7-Day Free Trial Link
+                          code: test
+                          subDuration: 7
+                          subLimit: 1000
+                          subCount: 850
+                          finishedFlag: false
+                          source: trial_campaign_2024
+                          autoDefaultList: true
+                          defaultListName: Trial Subscribers
+                          relTagNames:
+                            - trial_users
+                            - new_subscribers
+                          spendClaim: '0'
+                          payingFansCount: 550
+                          earningsGross: 2500000
+                          earningsNet: 2125000
+                          aepsGross: 294118
+                          aepsNet: 2500
+                          currency: USD
+                          createdTime: '1772448735447'
+                          expiredTime: '1775040735447'
+                          updatedTime: '1772448735447'
+                    hasMore: true
+                    cursor: '2002'
+                TRACKING Example:
+                  value:
+                    data:
+                      list:
+                        - id: '3001'
+                          name: Tracking Link - Spring Campaign
+                          code: test
+                          clickCount: 1250
+                          subCount: 280
+                          finishedFlag: false
+                          source: spring_campaign_2024
+                          autoDefaultList: true
+                          defaultListName: Spring Campaign Subscribers
+                          relTagNames:
+                            - spring_campaign
+                            - tracking
+                          earningsGross: 420000
+                          earningsNet: 378000
+                          payingFansCount: 210
+                          subscriptionCVR: '0'
+                          spendingCVR: '0'
+                          epcGross: 336
+                          epcNet: 3024
+                          aepsGross: 1500
+                          aepsNet: 1350
+                          currency: USD
+                          createdTime: '1772448835447'
+                          expiredTime: '1775040835447'
+                          updatedTime: '1772448835447'
+                    hasMore: true
+                    cursor: '3002'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-links
+      x-stoplight:
+        id: 5wkygbioldq7l
+      parameters:
+        - $ref: '#/components/parameters/creatorId'
+        - $ref: '#/components/parameters/startTime'
+        - $ref: '#/components/parameters/endTime'
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/linkType'
+        - $ref: '#/components/parameters/status'
+      description: |-
+        Pull a paginated list of tracking links, free trial links and profile promotions, and associated raw data.
+
+        > When synchronizing OnlyFans data, expect a delay of up to 2 hours.
+        > Only data from creators that are actively connected to Infloww can be pulled.
+    parameters: []
+  /v1/linkfans:
+    get:
+      summary: 'Fans from tracking links, free trial links and profile promotions'
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          headers: {}
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      list:
+                        - id: 30001
+                          fanId: fan_456789
+                          fanName: Alice
+                          subscriptionEarningGross: 100
+                          subscriptionEarningNet: 80
+                          postsEarningGross: 50
+                          postsEarningNet: 40
+                          messagesEarningGross: 30
+                          messagesEarningNet: 24
+                          streamsEarningGross: 20
+                          streamsEarningNet: 16
+                          tipsEarningGross: 70
+                          tipsEarningNet: 56
+                          currency: USD
+                          subscribedTime: '2026-02-01T12:00:00Z'
+                        - id: 30002
+                          fanId: fan_987654
+                          fanName: Bob
+                          subscriptionEarningGross: 60
+                          subscriptionEarningNet: 48
+                          postsEarningGross: 25
+                          postsEarningNet: 20
+                          messagesEarningGross: 15
+                          messagesEarningNet: 12
+                          streamsEarningGross: 10
+                          streamsEarningNet: 8
+                          tipsEarningGross: 40
+                          tipsEarningNet: 32
+                          currency: USD
+                          subscribedTime: '2026-02-10T09:30:00Z'
+                    hasMore: true
+                    cursor: eyJpZCI6MzAwMDJ9
+                    errorMessage: null
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: Unique identifier(Link ID)
+                            fanId:
+                              type: string
+                              description: Fan ID
+                            fanName:
+                              type: string
+                              description: Fan name
+                            subscriptionEarningGross:
+                              type: integer
+                              description: 'Subscription earnings (gross, in the smallest unit of the currency)'
+                            subscriptionEarningNet:
+                              type: integer
+                              description: Subscription earnings after deducting OnlyFans fees (in the smallest unit of the currency)
+                            postsEarningGross:
+                              type: integer
+                              description: 'Post earnings (gross, in the smallest unit of the currency)'
+                            postsEarningNet:
+                              type: integer
+                              description: Post earnings after deducting OnlyFans fees (in the smallest unit of the currency)
+                            messagesEarningGross:
+                              type: integer
+                              description: 'Message earnings (gross, in the smallest unit of the currency) '
+                            messagesEarningNet:
+                              type: integer
+                              description: 'Message earnings after deducting OnlyFans fees (in the smallest unit of the currency) '
+                            streamsEarningGross:
+                              type: integer
+                              description: 'Stream earnings (gross, in the smallest unit of the currency)'
+                            streamsEarningNet:
+                              type: integer
+                              description: Stream earnings after deducting OnlyFans fees (in the smallest unit of the currency)
+                            tipsEarningGross:
+                              type: integer
+                              description: 'Tip earnings (gross, in the smallest unit of the currency)'
+                            tipsEarningNet:
+                              type: integer
+                              description: Tip earnings after deducting OnlyFans fees (in the smallest unit of the currency)
+                            currency:
+                              type: string
+                              description: Currency code
+                            subscribedTime:
+                              type: string
+                              description: Subscription time (unix timestamp in milliseconds)
+                      linkType:
+                        type: string
+                        x-stoplight:
+                          id: q1twd34zldgr2
+                        description: Link type
+                      platformCode:
+                        type: string
+                        x-stoplight:
+                          id: x30ju3o0tfy7p
+                        description: Platform code
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+                  cursor:
+                    type: string
+                    description: Indicates whether more data is available.
+                    format: number
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      list:
+                        - id: '001'
+                          fanId: '001'
+                          fanName: test
+                          subscriptionEarningGross: 0
+                          subscriptionEarningNet: 0
+                          postsEarningGross: 0
+                          postsEarningNet: 0
+                          messagesEarningGross: 0
+                          messagesEarningNet: 0
+                          streamsEarningGross: 0
+                          streamsEarningNet: 0
+                          tipsEarningGross: 0
+                          tipsEarningNet: 0
+                          currency: USD
+                          subscribedTime: '1772448835447'
+                    hasMore: true
+                    cursor: '002'
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-linkfans
+      x-stoplight:
+        id: hswk1dmc9xhf1
+      parameters:
+        - $ref: '#/components/parameters/creatorId'
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+        - schema:
+            enum:
+              - CAMPAIGN
+              - TRIAL
+              - TRACKING
+            type: string
+            format: enum
+            default: TRIAL
+          in: query
+          name: linkType
+          description: We will validate the relationship between `linkType` and `platformCode`
+          allowEmptyValue: false
+          required: true
+        - schema:
+            type: number
+          in: query
+          name: linkId
+          description: Link Id
+          required: true
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+      description: |-
+        Pull a paginated list of fans that had clicked on the creator's tracking links, free trial links and profile promotions.
+
+        > When synchronizing OnlyFans data, there is a delay of up to 4 hours.
+    parameters: []
+  /v1/automated-messages:
+    parameters: []
+    get:
+      summary: Automated messages
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - automatedMessageId: 60001
+                          employeeId: 10001
+                          status: 1
+                          totalNumberOfTimeSent: 150
+                          totalNumberOfPurchases: 45
+                          totalRevenue: 125000
+                          sentTime: '2026-02-27T15:30:00Z'
+                          createdTime: '2026-02-27T14:00:00Z'
+                    cursor: '60001'
+                    hasMore: true
+                    errorMessage: null
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      platformCode:
+                        type: string
+                        description: Platform code
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            automatedMessageId:
+                              type: integer
+                              description: Unique identifier for the automated message
+                            employeeId:
+                              type: integer
+                              description: Employee ID who configured the message
+                            status:
+                              description: Message status
+                              enum:
+                                - Scheduled
+                                - Active
+                                - Completed
+                                - Canceled
+                              type: string
+                              format: enum
+                            includeListNames:
+                              type: array
+                              description: Fan list names to include
+                              minItems: 1
+                              maxItems: 50
+                              items:
+                                type: string
+                            excludeListNames:
+                              type: array
+                              description: Fan list names to exclude
+                              minItems: 0
+                              maxItems: 50
+                              items:
+                                type: string
+                            totalSpendMin:
+                              type: number
+                              description: Minimum total spend filter (in the smallest unit of the currency)
+                            totalSpendMax:
+                              type: number
+                              description: Maximum total spend filter (in the smallest unit of the currency)
+                            tipsGreaterThan:
+                              type: number
+                              description: Minimum tips amount filter (in the smallest unit of the currency)
+                            subscribeDurationGreaterThan:
+                              type: number
+                              description: Minimum subscription duration filter (in months)
+                            excludeCreators:
+                              type: boolean
+                              description: Whether to exclude creators from the target audience
+                            messageCdHours:
+                              type: number
+                              description: Cooldown period between messages (in hours)
+                            excludeFansWUnreadMessages:
+                              type: boolean
+                              description: Whether to exclude fans with unread messages
+                            excludeFansWViewSameMedia:
+                              type: boolean
+                              description: Whether to exclude fans who viewed the same media
+                            onlyOnlineFans:
+                              type: boolean
+                              description: Whether to target only online fans
+                            trigger:
+                              type: number
+                              description: |-
+                                Message trigger type. Possible values:
+                                - `1` — Nudge (messages fans when they comes online)
+                                - `2` — Subscriber welcome (greet fan when they subscribe)
+                                - `3` — Purchases (follow up with fans who purchased a PPV)
+                                - `5` — Expiring soon (messages fans when their subscription is about to expire)
+                                - `6` — Expired (messages fans whose subscription has expired)
+                                - `7` — Resubscribe (greet fans when they resubscribe)
+                                - `8` — Birthday greeting (wish fans happy birthday)
+                            triggerFrequency:
+                              type: number
+                              description: |-
+                                Trigger evaluation frequency.
+                                - `1` — Once
+                                - `2` — Every time
+                            collections:
+                              type: array
+                              description: Message collections with scripts and performance metrics
+                              items:
+                                type: object
+                                properties:
+                                  collectionNo:
+                                    type: number
+                                    description: Collection sequence number
+                                  messages:
+                                    type: array
+                                    description: Script messages in this collection
+                                    items:
+                                      type: object
+                                      x-stoplight:
+                                        id: irp62snfyk300
+                                      properties:
+                                        messageContent:
+                                          type: string
+                                          description: Message script content
+                                        price:
+                                          type: number
+                                          description: Message price (in the smallest unit of the currency)
+                                  price:
+                                    type: number
+                                    x-stoplight:
+                                      id: nhptlsvjjs26w
+                                    description: Total price of all messages in this collection (in the smallest unit of the currency)
+                                  numberOfTimesSent:
+                                    type: number
+                                    description: Number of times this collection was sent
+                                  numberOfPurchases:
+                                    type: number
+                                    description: Number of purchases generated by this collection
+                                  revenue:
+                                    type: number
+                                    description: Revenue generated by this collection (in the smallest unit of the currency)
+                            price:
+                              type: number
+                              x-stoplight:
+                                id: qq9m5ub3w2h9m
+                              description: Total price of all messages across all collections (in the smallest unit of the currency)
+                            canceledByEmployeeId:
+                              type: number
+                              description: ID of the employee who canceled the message
+                            totalNumberOfTimeSent:
+                              type: number
+                              description: Total number of times the message was sent
+                            totalNumberOfPurchases:
+                              type: number
+                              description: Total number of purchases generated
+                            totalRevenue:
+                              type: number
+                              description: Total revenue generated (in the smallest unit of the currency)
+                            sentTime:
+                              type: string
+                              description: Time when the message was sent (unix timestamp in milliseconds)
+                            endTime:
+                              type: string
+                              description: Time when the message campaign ended (unix timestamp in milliseconds)
+                            createdTime:
+                              type: string
+                              description: Creation time (unix timestamp in milliseconds)
+                            modifiedTime:
+                              type: string
+                              description: Last modification time (unix timestamp in milliseconds)
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - automatedMessageId: 60001
+                          employeeId: 10001
+                          status: Scheduled
+                          includeListNames:
+                            - VIP Fans
+                            - Active Subscribers
+                          excludeListNames:
+                            - Do Not Disturb
+                          totalSpendMin: 1000
+                          totalSpendMax: 50000
+                          tipsGreaterThan: 500
+                          subscribeDurationGreaterThan: 30
+                          excludeCreators: false
+                          messageCdHours: 24
+                          excludeFansWUnreadMessages: true
+                          excludeFansWViewSameMedia: false
+                          onlyOnlineFans: true
+                          trigger: 1
+                          triggerFrequency: 2
+                          collections:
+                            - collectionNo: 1
+                              message:
+                                - messageContent: Hey there! Check out my latest content.
+                                  price: 500
+                                  numberOfTimesSent: 75
+                                  numberOfPurchases: 25
+                                  revenue: 12500
+                                - messageContent: Special offer just for you!
+                                  price: 1000
+                                  numberOfTimesSent: 75
+                                  numberOfPurchases: 20
+                                  revenue: 20000
+                              numberOfTimesSent: 150
+                              numberOfPurchases: 45
+                              revenue: 32500
+                          canceledByEmployeeId: 123
+                          totalNumberOfTimeSent: 150
+                          totalNumberOfPurchases: 45
+                          totalRevenue: 32500
+                          sentTime: '1772449837492'
+                          endTime: '1775041837492'
+                          createdTime: '1772448037492'
+                          modifiedTime: '1772449837492'
+                    cursor: '60001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-automated-messages
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorId'
+        - $ref: '#/components/parameters/startTime'
+        - $ref: '#/components/parameters/cursor'
+        - in: query
+          description: Maximum number of records to return.
+          name: limit
+          schema:
+            type: number
+            minimum: 0
+            maximum: 10
+            exclusiveMinimum: true
+        - $ref: '#/components/parameters/endTime'
+        - schema:
+            type: array
+            minItems: 1
+            maxItems: 100
+            format: number
+          in: query
+          name: employeeIds
+          description: A list of employee IDs to filter by.
+      description: 'Pull a paginated list of automated messages sent. Includes rules and conditions set, message contents, and performance metrics, with filters for creator, employee, and date range.'
+  /v1/priority-mass-messages:
+    parameters: []
+    get:
+      summary: Priority mass messages
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - priorityMassMessageId: 70001
+                          employeeId: 10001
+                          status: 1
+                          totalNumberOfTimeSent: 500
+                          totalNumberOfPurchases: 120
+                          totalRevenue: 450000
+                          sentTime: '2026-02-27T16:00:00Z'
+                          createdTime: '2026-02-27T14:00:00Z'
+                    cursor: '70001'
+                    hasMore: true
+                    errorMessage: null
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      platformCode:
+                        type: string
+                        description: Platform code
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            priorityMassMessageId:
+                              type: number
+                              description: Unique identifier for the priority mass message
+                            employeeId:
+                              type: number
+                              description: Employee ID who configured the message
+                            status:
+                              description: Message status
+                              enum:
+                                - Scheduled
+                                - Active
+                                - Completed
+                                - Canceled
+                              type: string
+                              format: enum
+                            includeListNames:
+                              type: array
+                              description: Fan list names to include
+                              minItems: 1
+                              maxItems: 50
+                              items:
+                                type: string
+                            excludeListNames:
+                              type: array
+                              description: Fan list names to exclude
+                              minItems: 0
+                              maxItems: 50
+                              items:
+                                type: string
+                            totalSpendMin:
+                              type: number
+                              description: Minimum total spend filter (in the smallest unit of the currency)
+                            totalSpendMax:
+                              type: number
+                              description: Maximum total spend filter (in the smallest unit of the currency)
+                            tipsGreaterThan:
+                              type: number
+                              description: Minimum tips amount filter (in the smallest unit of the currency)
+                            subscribeDurationGreaterThan:
+                              type: number
+                              description: Minimum subscription duration filter (in months)
+                            excludeCreators:
+                              type: boolean
+                              description: Whether to exclude creators from the target audience
+                            messageCdHours:
+                              type: number
+                              description: Cooldown period between messages (in hours)
+                            excludeFansWUnreadMessages:
+                              type: boolean
+                              description: Whether to exclude fans with unread messages
+                            excludeFansWViewSameMedia:
+                              type: boolean
+                              description: Whether to exclude fans who viewed the same media
+                            onlyOnlineFans:
+                              type: boolean
+                              description: Whether to target only online fans
+                            collection:
+                              type: object
+                              description: Message collection with scripts and performance metrics
+                              properties:
+                                collectionNo:
+                                  type: number
+                                  description: Collection sequence number
+                                messages:
+                                  type: array
+                                  description: Script messages in this collection
+                                  items:
+                                    type: object
+                                    x-stoplight:
+                                      id: x3m0cnytva0x3
+                                    properties:
+                                      messageContent:
+                                        type: string
+                                        description: Message script content
+                                      price:
+                                        type: number
+                                        description: Message price (in the smallest unit of the currency)
+                                price:
+                                  type: number
+                                  x-stoplight:
+                                    id: 05bsi8opgcgm2
+                                  description: 'Total price of all messages in this collection (in the smallest unit of the currency) '
+                                numberOfTimesSent:
+                                  type: number
+                                  description: Number of times this collection was sent
+                                numberOfPurchases:
+                                  type: number
+                                  description: Number of purchases generated by this collection
+                                revenue:
+                                  type: number
+                                  description: Revenue generated by this collection (in the smallest unit of the currency)
+                            price:
+                              type: number
+                              x-stoplight:
+                                id: mh2w36atvsb5s
+                              description: Total price of all messages across all collections (in the smallest unit of the currency)
+                            unsentType:
+                              type: number
+                              description: |-
+                                Reason code for why the message was not sent.
+                                - `1` — Manual (manually unsent by employee)
+                                - `2` — Auto (automatically unsent by system)
+                            unsentByEmployeeId:
+                              type: number
+                              description: ID of the employee who marked the message as unsent
+                            canceledByEmployeeId:
+                              type: number
+                              description: ID of the employee who canceled the message
+                            totalNumberOfTimeSent:
+                              type: number
+                              description: Total number of times the message was sent
+                            totalNumberOfPurchases:
+                              type: number
+                              description: Total number of purchases generated
+                            totalRevenue:
+                              type: number
+                              description: Total revenue generated (in the smallest unit of the currency)
+                            sentTime:
+                              type: string
+                              description: Time when the message was sent (unix timestamp in milliseconds)
+                            endTime:
+                              type: string
+                              description: Time when the message campaign ended (unix timestamp in milliseconds)
+                            createdTime:
+                              type: string
+                              description: Creation time (unix timestamp in milliseconds)
+                            modifiedTime:
+                              type: string
+                              description: Last modification time (unix timestamp in milliseconds)
+                            failReason:
+                              type: string
+                              description: Reason for message failure
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - priorityMassMessageId: 70001
+                          employeeId: 10001
+                          status: Scheduled
+                          includeListNames:
+                            - All Subscribers
+                          excludeListNames:
+                            - Inactive Fans
+                          totalSpendMin: 0
+                          totalSpendMax: 100000
+                          tipsGreaterThan: 0
+                          subscribeDurationGreaterThan: 7
+                          excludeCreators: false
+                          messageCdHours: 48
+                          excludeFansWUnreadMessages: false
+                          excludeFansWViewSameMedia: true
+                          onlyOnlineFans: false
+                          collection:
+                            collectionNo: 1
+                            message:
+                              - messageContent: Exclusive offer for my top fans!
+                                price: 1500
+                                numberOfTimesSent: 500
+                                numberOfPurchases: 120
+                                revenue: 180000
+                            numberOfTimesSent: 500
+                            numberOfPurchases: 120
+                            revenue: 180000
+                          unsentType: 1
+                          unsentByEmployeeId: 123
+                          canceledByEmployeeId: 123
+                          totalNumberOfTimeSent: 500
+                          totalNumberOfPurchases: 120
+                          totalRevenue: 180000
+                          sentTime: '1772450437492'
+                          endTime: '1775042437492'
+                          createdTime: '1772448037492'
+                          modifiedTime: '1772450437492'
+                          failReason: xxx
+                    cursor: '70001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-priority-mass-messages
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorId'
+        - $ref: '#/components/parameters/startTime'
+        - $ref: '#/components/parameters/cursor'
+        - in: query
+          description: Maximum number of records to return.
+          schema:
+            type: number
+            exclusiveMinimum: true
+            minimum: 0
+            maximum: 10
+          name: limit
+        - $ref: '#/components/parameters/endTime'
+        - schema:
+            type: array
+            format: number
+            minItems: 1
+            maxItems: 100
+          in: query
+          name: employeeIds
+          description: A list of employee IDs to filter by.
+      description: 'Pull a paginated list of priority mass messages sent. Includes rules and conditions set, message contents, and performance metrics, with filters for creator, employee, and date range.'
+  /v1/transaction-perf/details:
+    parameters: []
+    get:
+      summary: Sales records (all creators)
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - id: 50001
+                          transactionId: txn_20260227001
+                          platformPid: 100001
+                          fanId: fan_987654
+                          fanName: JohnDoe
+                          createdTime: '2026-02-27T15:30:00Z'
+                          type: Tips
+                          tipSource: Chat
+                          status: done
+                          amount: 5000
+                          fee: 500
+                          net: 4500
+                          salesRule: Message sender
+                          attributeEmployeeId: 10001
+                          salesAmount: 4500
+                          currency: USD
+                    cursor: eyJpZCI6NTAwMDF9
+                    hasMore: true
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      platformCode:
+                        type: string
+                        description: Platform code
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              description: Unique identifier (Infloww employee sales ID)
+                            transactionId:
+                              type: string
+                              description: Infloww transaction ID
+                            platformPid:
+                              type: integer
+                              description: Platform performer ID
+                            fanId:
+                              type: string
+                              description: Fan ID
+                            fanName:
+                              type: string
+                              description: Fan name
+                            createdTime:
+                              type: string
+                              description: Transaction creation time (ISO 8601 date-time in UTC)
+                            type:
+                              type: string
+                              description: Transaction type
+                              format: enum
+                              enum:
+                                - Unknown
+                                - Subscription
+                                - RecurringSubscription
+                                - Tips
+                                - Messages
+                                - Referrals
+                                - Streams
+                                - Posts
+                            tipSource:
+                              type: string
+                              description: Tip source
+                              format: enum
+                              enum:
+                                - Unknown
+                                - Profile
+                                - Post
+                                - Chat
+                                - Stream
+                                - Story
+                            status:
+                              type: string
+                              description: Transaction status
+                              format: enum
+                              enum:
+                                - loading
+                                - done
+                                - undo
+                                - pending_return
+                            amount:
+                              type: integer
+                              description: Transaction amount (in the smallest unit of the currency)
+                            fee:
+                              type: integer
+                              description: Fee amount (in the smallest unit of the currency)
+                            net:
+                              type: integer
+                              description: Net amount (in the smallest unit of the currency)
+                            salesRule:
+                              type: string
+                              description: Sales attribution rule
+                              format: enum
+                              enum:
+                                - Unassigned
+                                - Message sender
+                                - Last chatter
+                                - Employee on shift
+                                - Manually reassigned
+                            attributeEmployeeId:
+                              type: integer
+                              description: Employee ID attributed with this sale
+                            salesAmount:
+                              type: integer
+                              description: Attributed sales amount (in the smallest unit of the currency)
+                            currency:
+                              type: string
+                              description: Currency code
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - id: 50001
+                          transactionId: txn_20260227001
+                          platformPid: 100001
+                          fanId: fan_987654
+                          fanName: JohnDoe
+                          createdTime: '2026-02-27T15:30:00Z'
+                          type: Tips
+                          tipSource: Chat
+                          status: done
+                          amount: 5000
+                          fee: 500
+                          net: 4500
+                          salesRule: Message sender
+                          attributeEmployeeId: 10001
+                          salesAmount: 4500
+                          currency: USD
+                    cursor: '001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-transaction-perf-details
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorId'
+        - $ref: '#/components/parameters/startTime'
+        - $ref: '#/components/parameters/endTime'
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+      description: |-
+        Pull a paginated list of transaction performance details with sales attribution data. Each transaction includes the employee attribution rule, attributed employee, and attributed sales amount.
+
+        Creator scope required: **All creators**
+        > This endpoint supports querying all creators, including deleted or unlinked creators. Query range is limited to 31 days per request and up to 366 days in the past. Only one creator ID can be queried per request.
+  /v1/invoice-data/monthly-billing:
+    parameters: []
+    get:
+      summary: Invoice
+      tags:
+        - Organization scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    description: Monthly billing summary data.
+                    properties:
+                      list:
+                        type: array
+                        description: List of monthly billing records.
+                        items:
+                          type: object
+                          x-stoplight:
+                            id: t8sawp8bacx6k
+                          properties:
+                            billingId:
+                              type: string
+                              description: 'Unique identifier for billing, used for querying billing details.'
+                            invoiceId:
+                              type: string
+                              description: Invoice ID. Null if not yet invoiced.
+                            billingPeriod:
+                              type: string
+                              description: Billing period in yyyy-MM format.
+                            currency:
+                              type: string
+                              description: Currency code (USD or EUR).
+                            subscription:
+                              type: integer
+                              description: Original subscription fee.
+                            discount:
+                              type: integer
+                              description: Discount amount.
+                            igic:
+                              type: integer
+                              description: Tax amount. Null if no tax.
+                            total:
+                              type: integer
+                              description: Total amount. Equals realAmount when vat is null.
+                            deductions:
+                              type: integer
+                              description: Balance/Wallet deduction amount.
+                            balanceDue:
+                              type: integer
+                              description: Amount due after deductions.
+                            paid:
+                              type: integer
+                              description: Total paid amount across all payment channels.
+                            pending:
+                              type: integer
+                              description: Current remaining amount due (= balanceDue - paid).
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-monthly-billing
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - schema:
+            type: string
+            pattern: yyyy-MM
+            example: 2026-01
+          in: query
+          name: startTime
+          description: Billing period start month.
+          required: true
+        - schema:
+            type: string
+            pattern: yyyy-MM
+            example: 2026-06
+          in: query
+          name: endTime
+          description: Billing period end month.
+          required: true
+      description: |-
+        Retrieves the monthly billing and invoice summary for a specified agency. The query supports a maximum date range of up to one year.
+
+        > Data latency: no delay compared to the Infloww app.
+
+        > Rate limit: 10 QPM (queries per minute) for this endpoint.
+  /v1/transaction-perf/manual-assignment/details:
+    parameters: []
+    get:
+      summary: Reassigned sales log
+      tags:
+        - Organization scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    description: Manual assignment records.
+                    properties:
+                      list:
+                        type: array
+                        description: List of manual assignment records.
+                        items:
+                          type: object
+                          x-stoplight:
+                            id: f21adrbv18ybb
+                          properties:
+                            id:
+                              type: integer
+                              description: Unique identifier of the manual assignment record.
+                            transactionId:
+                              type: integer
+                              description: Infloww transaction ID.
+                            transactionPerfId:
+                              type: integer
+                              description: Infloww Sales Records ID.
+                            operationType:
+                              type: string
+                              description: Operation type.
+                              enum:
+                                - Exclude
+                                - Include
+                            operationEmployeeId:
+                              type: integer
+                              description: ID of the employee who performed the operation.
+                            beforeAttributeEmployeeId:
+                              type: integer
+                              description: Employee ID before the operation. Null if no prior assignment.
+                            afterAttributeEmployeeId:
+                              type: integer
+                              description: Employee ID after the operation. Null if no assignment.
+                            createdTime:
+                              type: string
+                              description: Operation time (unix timestamp in milliseconds).
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results (manual assignment record ID).
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-transaction-perf-manual-assignment-details
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/startTime'
+        - $ref: '#/components/parameters/endTime'
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+      description: |-
+        Retrieves manual assignment records for sales transactions within an organization (agency). Each record details the operation type (whether the sales transaction was assigned or unassigned to the chatter) and the resulting employee attribution changes.
+
+        Organization scope required.
+        > Query range is limited to 31 days per request and up to 366 days in the past.
+
+        > Data latency: no delay compared to the Infloww app.
+  /v1/creator-report/chat-summary:
+    parameters: []
+    get:
+      summary: Messages sent statistics
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - platformPid: 100001
+                          replyTime: 120000
+                          fansChatted: 45
+                          messagesSent: 120
+                          ppvsSent: 15
+                    cursor: eyJwYWdlIjoxfQ==
+                    hasMore: true
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      platformCode:
+                        type: string
+                        description: Platform code
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            platformPid:
+                              type: integer
+                              description: Platform performer ID
+                            replyTime:
+                              type: integer
+                              description: Average message reply time (in milliseconds)
+                            fansChatted:
+                              type: integer
+                              description: Number of unique fans who chatted
+                            messagesSent:
+                              type: integer
+                              description: Number of messages sent by the creator
+                            ppvsSent:
+                              type: integer
+                              description: Number of PPV messages sent by the creator
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - platformPid: 100001
+                          replyTime: 120000
+                          fansChatted: 45
+                          messagesSent: 120
+                          ppvsSent: 15
+                    cursor: '001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-creator-report-chat-summary
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorIds'
+        - $ref: '#/components/parameters/reportStartTime'
+        - $ref: '#/components/parameters/reportEndTime'
+      description: |-
+        Pull chat activity summary for up to 10 creators. Includes message counts, reply times, and PPV metrics.
+
+        > Data is aggregated by day. Query range is limited to 31 days per request and up to 366 days in the past.
+  /v1/creator-report/fans/count:
+    parameters: []
+    get:
+      summary: Fans' status
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - platformPid: 100001
+                          date: '2026-02-27'
+                          activeFans: 1200
+                          expiredFans: 85
+                    cursor: eyJwYWdlIjoxfQ==
+                    hasMore: true
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      platformCode:
+                        type: string
+                        description: Platform code
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            platformPid:
+                              type: integer
+                              description: Platform performer ID
+                            date:
+                              type: string
+                              format: date
+                              description: 'Statistics date in ISO 8601 format (YYYY-MM-DD). Example: 2026-02-27'
+                            activeFans:
+                              type: integer
+                              description: Number of active fans
+                            expiredFans:
+                              type: integer
+                              description: Number of expired fans
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - platformPid: 100001
+                          date: '2026-02-27'
+                          activeFans: 1200
+                          expiredFans: 85
+                    cursor: '001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-creator-report-fans-count
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorIds'
+        - $ref: '#/components/parameters/reportStartTime'
+        - $ref: '#/components/parameters/reportEndTime'
+      description: |-
+        Pull daily active and expired fans counts for up to 10 creators.
+
+        > Data is aggregated by day. Query range is limited to 31 days per request and up to 366 days in the past.
+  /v1/creator-report/fans/subscriber-count:
+    parameters: []
+    get:
+      summary: New and renewed fans
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - platformPid: 100001
+                          date: '2026-02-27'
+                          newSubscribers: 35
+                          subscriberRenewals: 120
+                    cursor: eyJwYWdlIjoxfQ==
+                    hasMore: true
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      platformCode:
+                        type: string
+                        description: Platform code
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            platformPid:
+                              type: integer
+                              description: Platform performer ID
+                            date:
+                              type: string
+                              format: date
+                              description: 'Statistics date in ISO 8601 format (YYYY-MM-DD). Example: 2026-02-27'
+                            newSubscribers:
+                              type: integer
+                              description: Number of new subscribers
+                            subscriberRenewals:
+                              type: integer
+                              description: Number of subscription renewals
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - platformPid: 100001
+                          date: '2026-02-27'
+                          newSubscribers: 35
+                          subscriberRenewals: 120
+                    cursor: '001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-creator-report-fans-subscriber-count
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorIds'
+        - $ref: '#/components/parameters/reportStartTime'
+        - $ref: '#/components/parameters/reportEndTime'
+      description: |-
+        Pull daily new subscriber and renewal counts for up to 10 creators.
+
+        > Data is aggregated by day. Query range is limited to 31 days per request and up to 366 days in the past.
+  /v1/creator-report/fans/renew-on:
+    parameters: []
+    get:
+      summary: Fans with renew on
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - platformPid: 100001
+                          date: '2026-02-27'
+                          fansWithRenewOn: 850
+                    cursor: eyJwYWdlIjoxfQ==
+                    hasMore: true
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      platformCode:
+                        type: string
+                        description: Platform code
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            platformPid:
+                              type: integer
+                              description: Platform performer ID
+                            date:
+                              type: string
+                              format: date
+                              description: 'Statistics date in ISO 8601 format (YYYY-MM-DD). Example: 2026-02-27'
+                            fansWithRenewOn:
+                              type: integer
+                              description: Number of fans with auto-renew enabled
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - platformPid: 100001
+                          date: '2026-02-27'
+                          fansWithRenewOn: 850
+                    cursor: '001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-creator-report-fans-renew-on
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorIds'
+        - $ref: '#/components/parameters/reportStartTime'
+        - $ref: '#/components/parameters/reportEndTime'
+      description: |-
+        Pull daily count of fans with auto-renew enabled for up to 10 creators.
+
+        > Data is aggregated by day. Query range is limited to 31 days per request and up to 366 days in the past.
+  /v1/creator-report/fans/avg-subscription-length:
+    parameters: []
+    get:
+      summary: Fans' subscription length
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - platformPid: 100001
+                          date: '2026-02-27'
+                          avgSubscriptionLength: 45
+                    cursor: eyJwYWdlIjoxfQ==
+                    hasMore: true
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      platformCode:
+                        type: string
+                        description: Platform code
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            platformPid:
+                              type: integer
+                              description: Platform performer ID
+                            date:
+                              type: string
+                              format: date
+                              description: 'Statistics date in ISO 8601 format (YYYY-MM-DD). Example: 2026-02-27'
+                            avgSubscriptionLength:
+                              type: integer
+                              description: Average subscription length (in days)
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - platformPid: 100001
+                          date: '2026-02-27'
+                          avgSubscriptionLength: 45
+                    cursor: '001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-creator-report-fans-avg-subscription-length
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorIds'
+        - $ref: '#/components/parameters/reportStartTime'
+        - $ref: '#/components/parameters/reportEndTime'
+      description: |-
+        Pull daily average subscription length for up to 10 creators.
+
+        > Data is aggregated by day. Query range is limited to 31 days per request and up to 366 days in the past.
+  /v1/creator-report/reach/profile-visitor-count:
+    parameters: []
+    get:
+      summary: Profile visitors
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - platformPid: 100001
+                          date: '2026-02-27'
+                          profileVisitors: 2500
+                          guestProfileVisitors: 1500
+                          loggedInUsersProfileVisitors: 1000
+                    cursor: eyJwYWdlIjoxfQ==
+                    hasMore: true
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      platformCode:
+                        type: string
+                        description: Platform code
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            platformPid:
+                              type: integer
+                              description: Platform performer ID
+                            date:
+                              type: string
+                              format: date
+                              description: 'Statistics date in ISO 8601 format (YYYY-MM-DD). Example: 2026-02-27'
+                            profileVisitors:
+                              type: integer
+                              description: Total number of profile visitors
+                            guestProfileVisitors:
+                              type: integer
+                              description: Number of guest (not logged in) profile visitors
+                            loggedInUsersProfileVisitors:
+                              type: integer
+                              description: Number of logged-in profile visitors
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - platformPid: 100001
+                          date: '2026-02-27'
+                          profileVisitors: 2500
+                          guestProfileVisitors: 1500
+                          loggedInUsersProfileVisitors: 1000
+                    cursor: '001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-creator-report-reach-profile-visitor-count
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorIds'
+        - $ref: '#/components/parameters/reportStartTime'
+        - $ref: '#/components/parameters/reportEndTime'
+      description: |-
+        Pull daily profile visitor counts for up to 10 creators.
+
+        > Data is aggregated by day. Query range is limited to 31 days per request and up to 366 days in the past.
+  /v1/creator-report/rank:
+    parameters: []
+    get:
+      summary: Platform ranking
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - platformPid: 100001
+                          date: '2026-02-27'
+                          performanceRank: Top 5%
+                    cursor: eyJwYWdlIjoxfQ==
+                    hasMore: true
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      platformCode:
+                        type: string
+                        description: Platform code
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            platformPid:
+                              type: integer
+                              description: Platform performer ID
+                            date:
+                              type: string
+                              format: date
+                              description: 'Statistics date in ISO 8601 format (YYYY-MM-DD). Example: 2026-02-27'
+                            performanceRank:
+                              type: number
+                              description: Performance ranking
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - platformPid: 100001
+                          date: '2026-02-27'
+                          performanceRank: Top 5%
+                    cursor: '001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-creator-report-rank
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorIds'
+        - $ref: '#/components/parameters/reportStartTime'
+        - $ref: '#/components/parameters/reportEndTime'
+      description: |-
+        Pull daily performance ranking trajectory for up to 10 creators.
+
+        > Data is aggregated by day. Query range is limited to 31 days per request and up to 366 days in the past.
+  /v1/creator/status-change-log:
+    parameters: []
+    get:
+      summary: Creator Infloww status log
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    description: Creator status change log data.
+                    properties:
+                      platformCode:
+                        type: string
+                        description: Platform code
+                      list:
+                        type: array
+                        description: List of status change log entries.
+                        items:
+                          type: object
+                          x-stoplight:
+                            id: mm4zpepyotdi1
+                          properties:
+                            id:
+                              type: integer
+                              description: Unique identifier of the status change log.
+                            statusBefore:
+                              type: string
+                              description: Status before the change.
+                              enum:
+                                - connected
+                                - 2FA
+                                - not connect
+                                - disconnected
+                            statusAfter:
+                              type: string
+                              description: Status after the change.
+                              enum:
+                                - connected
+                                - 2FA
+                                - not connect
+                                - disconnected
+                            creatorId:
+                              type: integer
+                              description: Creator ID.
+                            platformPid:
+                              type: string
+                              description: Platform performer ID.
+                            operationTime:
+                              type: string
+                              description: Operation time (unix timestamp in milliseconds).
+                            operationEmployeeId:
+                              type: integer
+                              description: 'ID of the employee who performed the operation. Null for automatic operations (e.g., auto-disconnect).'
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results (status change log ID).
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-creator-status-change-log
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/startTime'
+        - $ref: '#/components/parameters/endTime'
+        - $ref: '#/components/parameters/creatorIds'
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+      description: |-
+        Query creator status change logs (bind/unbind/2FA etc.). Only supports data from June 1, 2026 onwards.
+
+        > Data latency: no delay.
+  /v1/employees:
+    get:
+      summary: Employees
+      tags:
+        - Employee Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      list:
+                        - employeeId: 10001
+                          employeeName: Jane Doe
+                          status: active
+                          createdTime: '2026-01-15T10:30:00Z'
+                          deletedTime: null
+                        - employeeId: 10002
+                          employeeName: John Smith
+                          status: inactive
+                          createdTime: '2026-02-01T14:00:00Z'
+                          deletedTime: '2026-03-15T09:00:00Z'
+                    cursor: '10002'
+                    hasMore: true
+                    errorMessage: null
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            employeeId:
+                              type: integer
+                              description: Unique identifier for the employee
+                            employeeName:
+                              type: string
+                              description: Employee display name
+                            status:
+                              description: Employee status
+                              type: string
+                              format: enum
+                              enum:
+                                - Activated
+                                - Deactivated
+                                - Deleted
+                            createdTime:
+                              type: string
+                              description: Creation time (unix timestamp in milliseconds)
+                            deletedTime:
+                              type: string
+                              description: Deletion time (unix timestamp in milliseconds). Null if the employee is still active.
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      list:
+                        - employeeId: 10001
+                          employeeName: Jane Doe
+                          status: Activated
+                          createdTime: '1768474200000'
+                          deletedTime: '1768474200000'
+                        - employeeId: 10002
+                          employeeName: John Smith
+                          status: Activated
+                          createdTime: '1769947200000'
+                          deletedTime: '1773572400000'
+                    cursor: '10002'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-employees
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+        - schema:
+            type: array
+            minLength: 0
+            maxLength: 10
+            maxItems: 100
+            format: number
+            minItems: 1
+          in: query
+          name: employeeIds
+          description: A list of employee IDs to filter by.
+      description: |-
+        Pull a paginated list of employees under your agency. Results can optionally be filtered by a list of employee IDs.
+
+        > If `employeeIds` is not provided, all employees are returned.
+    parameters: []
+  /v1/employees/assigned-creators:
+    parameters: []
+    get:
+      summary: Employee's assigned creators
+      tags:
+        - Employee Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      list:
+                        - platformCode: OnlyFans
+                          employeeId: 10001
+                          creatorId: 50001
+                        - platformCode: OnlyFans
+                          employeeId: 10001
+                          creatorId: 50002
+                    cursor: '50002'
+                    hasMore: true
+                    errorMessage: null
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            platformCode:
+                              type: string
+                              description: Platform code
+                            employeeId:
+                              type: number
+                              description: Unique identifier for the employee.
+                            creatorId:
+                              type: number
+                              description: Unique identifier for the creator.
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      list:
+                        - platformCode: OnlyFans
+                          employeeId: 10001
+                          creatorId: 50001
+                        - platformCode: OnlyFans
+                          employeeId: 10001
+                          creatorId: 50002
+                    cursor: '50002'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-employee-assigned-creators
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/employeeId'
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+      description: |-
+        Pull a paginated list of creators assigned to a specific employee.
+
+        > Only creators on OnlyFans are currently supported.
+  /v1/employee-report/employee-sales-summary:
+    parameters: []
+    get:
+      summary: Sales statistics
+      tags:
+        - Employee Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - employeeId: 10001
+                          date: '2026-02-27'
+                          platformPid: 100001
+                          salesAmount: 15000
+                          ppvSalesAmount: 5000
+                          tipsSalesAmount: 3000
+                          directMessageSalesAmount: 4000
+                          priorityMassMessageSalesAmount: 2000
+                          massMessageSalesAmount: 1000
+                          currency: USD
+                    cursor: eyJwYWdlIjoxfQ==
+                    hasMore: true
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      platformCode:
+                        type: string
+                        description: Platform code
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            employeeId:
+                              type: integer
+                              description: Unique identifier for the employee
+                            date:
+                              type: string
+                              format: date
+                              description: 'Statistics date in ISO 8601 format (YYYY-MM-DD). Example: 2026-02-27'
+                            platformPid:
+                              type: integer
+                              description: Platform performer ID
+                              x-stoplight:
+                                id: 2bik6q3v156q5
+                            salesAmount:
+                              type: integer
+                              description: Total sales generated according to your sales settings (in the smallest unit of the currency)
+                            ppvSalesAmount:
+                              type: integer
+                              description: Sales generated from PPVs (in the smallest unit of the currency)
+                            tipsSalesAmount:
+                              type: integer
+                              description: Sales generated from tips (in the smallest unit of the currency)
+                            directMessageSalesAmount:
+                              type: integer
+                              description: 'Sales from direct messages sent by the employee, excluding priority/OF mass messages and automated messages (in the smallest unit of the currency)'
+                            priorityMassMessageSalesAmount:
+                              type: integer
+                              description: Sales generated from priority mass messages (in the smallest unit of the currency)
+                            massMessageSalesAmount:
+                              type: integer
+                              description: Sales generated from OF mass messages (in the smallest unit of the currency)
+                            currency:
+                              type: string
+                              description: Currency code
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - employeeId: 10001
+                          date: '2026-02-27'
+                          platformPid: 100001
+                          salesAmount: 15000
+                          ppvSalesAmount: 5000
+                          tipsSalesAmount: 3000
+                          directMessageSalesAmount: 4000
+                          priorityMassMessageSalesAmount: 2000
+                          massMessageSalesAmount: 1000
+                          currency: USD
+                    cursor: '001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-employee-report-sales-summary
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/employeeIds-10limit'
+        - $ref: '#/components/parameters/reportStartTime'
+        - $ref: '#/components/parameters/reportEndTime'
+      description: |-
+        Pull daily sales breakdown by employee and creator.
+
+        > Data is aggregated by day per employee and creator. Query range is limited to 31 days per request and up to 366 days in the past.
+  /v1/employee-report/employee-chat-summary:
+    parameters: []
+    get:
+      summary: Chatting statistics
+      tags:
+        - Employee Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - employeeId: 10001
+                          date: '2026-02-27'
+                          platformPid: 100001
+                          directMessagesSent: 200
+                          directPpvsSent: 25
+                          goldenRatio: 12.5%
+                          ppvsUnlocked: 15
+                          unlockRate: 60.0%
+                          fansChatted: 45
+                          characterCount: 12500
+                    cursor: eyJwYWdlIjoxfQ==
+                    hasMore: true
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      platformCode:
+                        type: string
+                        description: Platform code
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            employeeId:
+                              type: integer
+                              description: Unique identifier for the employee
+                            date:
+                              type: string
+                              format: date
+                              description: 'Statistics date in ISO 8601 format (YYYY-MM-DD). Example: 2026-02-27'
+                            platformPid:
+                              type: integer
+                              description: Platform performer ID
+                              x-stoplight:
+                                id: lxmwkr24y6e4w
+                            directMessagesSent:
+                              type: integer
+                              description: Number of direct messages sent by the employee (excluding priority/OF mass and automated messages)
+                            directPpvsSent:
+                              type: integer
+                              description: Number of PPVs sent via direct messages (excluding priority/OF mass and automated messages)
+                            goldenRatio:
+                              type: string
+                              description: Percentage of direct messages that are PPVs (directPpvsSent / directMessagesSent × 100)
+                            ppvsUnlocked:
+                              type: integer
+                              description: Number of direct PPVs unlocked by fans
+                            unlockRate:
+                              type: string
+                              description: Percentage of direct PPVs unlocked by fans (ppvsUnlocked / directPpvsSent × 100)
+                            fansChatted:
+                              type: integer
+                              description: Number of unique fans the employee sent at least one message to
+                            characterCount:
+                              type: integer
+                              description: 'Total character count of messages sent (excluding priority/OF mass, automated, and script-based messages)'
+                            responseTimeBasedOnScheduledHours:
+                              type: integer
+                              description: 'V1.4: Average time taken by employee to reply to a fan in chat for messages sent during scheduled shift hours. Does not include unreplied messages. If multiple employees are assigned to the same shift, attributed to the first employee who replies (in milliseconds).'
+                            responseTimeBasedOnClockedHours:
+                              type: integer
+                              description: 'V1.4: Average time taken by employee to reply to a fan based on clocked hours. Does not include unreplied messages (in milliseconds).'
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      platformCode: OnlyFans
+                      list:
+                        - employeeId: 10001
+                          date: '2026-02-27'
+                          platformPid: 100001
+                          directMessagesSent: 200
+                          directPpvsSent: 25
+                          goldenRatio: 12.5%
+                          ppvsUnlocked: 15
+                          unlockRate: 60.0%
+                          fansChatted: 45
+                          characterCount: 12500
+                          responseTimeBasedOnScheduledHours: 120000
+                          responseTimeBasedOnClockedHours: 90000
+                    cursor: '001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-employee-report-chat-summary
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/employeeIds-10limit'
+        - $ref: '#/components/parameters/reportStartTime'
+        - $ref: '#/components/parameters/reportEndTime'
+      description: |-
+        Pull daily chat breakdown by employee and creator.
+
+        > Data is aggregated by day per employee and creator. Query range is limited to 31 days per request and up to 366 days in the past.
+  /v1/scripts:
+    get:
+      summary: Scripts
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      list:
+                        - id: 30001
+                          name: Welcome message
+                    cursor: '30001'
+                    hasMore: true
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: number
+                              description: Unique identifier for the script
+                            name:
+                              type: string
+                              description: Script name
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results. Null if no more data is available.
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      list:
+                        - id: 30001
+                          name: Welcome message
+                    cursor: '30001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-scripts
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorId'
+        - schema:
+            type: string
+            enum:
+              - TAG
+              - SEQUENCE
+            example: TAG
+          in: query
+          name: filterType
+          description: Filter scripts by tag or sequence.
+          required: true
+        - schema:
+            type: integer
+            format: int64
+            example: 10001
+          in: query
+          name: filterId
+          description: 'Tag ID when `filterType` is `TAG`, or sequence ID when `filterType` is `SEQUENCE`.'
+          required: true
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+      description: |-
+        Pull a paginated list of scripts for a creator, filtered by tag or sequence.
+
+        > Full historical data is available.
+
+        > Data latency: no delay compared to the Infloww app.
+  /v1/script/statistics:
+    get:
+      summary: Script statistics
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      sendCount: 120
+                      payUsedCount: 80
+                      purchaseCount: 40
+                      revenueAmount: 20000
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      sendCount:
+                        type: number
+                        description: Total number of times the script was sent
+                      payUsedCount:
+                        type: number
+                        description: Total number of paid sends
+                      purchaseCount:
+                        type: number
+                        description: Total number of purchases generated
+                      revenueAmount:
+                        type: number
+                        description: Total revenue generated (in cents)
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      sendCount: 120
+                      payUsedCount: 80
+                      purchaseCount: 40
+                      revenueAmount: 20000
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-script-statistics
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorId'
+        - schema:
+            type: integer
+            format: int64
+            example: 30001
+          in: query
+          name: scriptId
+          description: Unique identifier for the script.
+          required: true
+      description: |-
+        Pull cumulative performance statistics for a script.
+
+        > Full historical data is available.
+
+        > Data latency: no delay compared to the Infloww app.
+  /v1/script-tag:
+    get:
+      summary: Scripts' tags
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      list:
+                        - id: 10001
+                          tagName: Welcome
+                    cursor: '10001'
+                    hasMore: true
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: number
+                              description: Unique identifier for the script tag
+                            tagName:
+                              type: string
+                              description: Script tag name
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results. Null if no more data is available.
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      list:
+                        - id: 10001
+                          tagName: Welcome
+                    cursor: '10001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-script-tag
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorId'
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+      description: |-
+        Pull a paginated list of script tags for a creator.
+
+        > Full historical data is available.
+
+        > Data latency: no delay compared to the Infloww app.
+  /v1/script-tag/statistics:
+    get:
+      summary: Scripts' tag statistics
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      sendCount: 120
+                      payUsedCount: 80
+                      purchaseCount: 40
+                      revenueAmount: 20000
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      sendCount:
+                        type: number
+                        description: Total number of times the script was sent
+                      payUsedCount:
+                        type: number
+                        description: Total number of paid sends
+                      purchaseCount:
+                        type: number
+                        description: Total number of purchases generated
+                      revenueAmount:
+                        type: number
+                        description: Total revenue generated (in cents)
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      sendCount: 120
+                      payUsedCount: 80
+                      purchaseCount: 40
+                      revenueAmount: 20000
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-script-tag-statistics
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorId'
+        - schema:
+            type: integer
+            format: int64
+            example: 10001
+          in: query
+          name: tagId
+          description: Unique identifier for the script tag.
+          required: true
+      description: |-
+        Pull cumulative performance statistics for a script tag.
+
+        > Full historical data is available.
+
+        > Data latency: no delay compared to the Infloww app.
+  /v1/script-sequence:
+    get:
+      summary: Sequence
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      list:
+                        - id: 20001
+                          name: Welcome sequence
+                          description: Welcome messages for new fans.
+                    cursor: '20001'
+                    hasMore: true
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      list:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: number
+                              description: Unique identifier for the script sequence
+                            name:
+                              type: string
+                              description: Script sequence name
+                            description:
+                              type:
+                                - string
+                                - 'null'
+                              description: Script sequence description
+                  cursor:
+                    type: string
+                    description: Pagination cursor for retrieving next page of results. Null if no more data is available.
+                  hasMore:
+                    type: boolean
+                    description: Indicates whether more data is available.
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      list:
+                        - id: 20001
+                          name: Welcome sequence
+                          description: Welcome messages for new fans.
+                    cursor: '20001'
+                    hasMore: true
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-script-sequence
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorId'
+        - $ref: '#/components/parameters/cursor'
+        - $ref: '#/components/parameters/limit'
+      description: |-
+        Pull a paginated list of script sequences for a creator.
+
+        > Full historical data is available.
+
+        > Data latency: no delay compared to the Infloww app.
+  /v1/script-sequence/statistics:
+    get:
+      summary: Sequence statistics
+      tags:
+        - Creator Scope
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                x-examples:
+                  Example 1:
+                    data:
+                      sendCount: 120
+                      payUsedCount: 80
+                      purchaseCount: 40
+                      revenueAmount: 20000
+                properties:
+                  data:
+                    type: object
+                    description: 'Returned upon success, corresponding to the specific business data structure.'
+                    properties:
+                      sendCount:
+                        type: number
+                        description: Total number of times the script was sent
+                      payUsedCount:
+                        type: number
+                        description: Total number of paid sends
+                      purchaseCount:
+                        type: number
+                        description: Total number of purchases generated
+                      revenueAmount:
+                        type: number
+                        description: Total revenue generated (in cents)
+              examples:
+                Example 1:
+                  value:
+                    data:
+                      sendCount: 120
+                      payUsedCount: 80
+                      purchaseCount: 40
+                      revenueAmount: 20000
+        '400':
+          $ref: '#/components/responses/400'
+        '401':
+          $ref: '#/components/responses/401'
+        '403':
+          $ref: '#/components/responses/403'
+        '429':
+          $ref: '#/components/responses/429'
+        '500':
+          $ref: '#/components/responses/500'
+      operationId: get-script-sequence-statistics
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - $ref: '#/components/parameters/x-oid'
+        - $ref: '#/components/parameters/platformCode'
+        - $ref: '#/components/parameters/creatorId'
+        - schema:
+            type: integer
+            format: int64
+            example: 20001
+          in: query
+          name: sequenceId
+          description: Unique identifier for the script sequence.
+          required: true
+      description: |-
+        Pull cumulative performance statistics for a script sequence.
+
+        > Full historical data is available.
+
+        > Data latency: no delay compared to the Infloww app.
+components:
+  schemas: {}
+  parameters:
+    platformCode:
+      name: platformCode
+      in: query
+      required: false
+      schema:
+        type: string
+        format: enum
+        default: OnlyFans
+        enum:
+          - OnlyFans
+      description: Platform code.
+      deprecated: false
+    creatorId:
+      name: creatorId
+      in: query
+      required: true
+      schema:
+        type: number
+      description: 'We will validate the relationship between `creatorId` , `platformCode`, and `oid`.'
+    creatorIds:
+      name: creatorIds
+      in: query
+      required: true
+      schema:
+        type: array
+        items:
+          type: number
+        minItems: 1
+        maxItems: 10
+      description: A list of creator IDs to filter by. Required for Creator Report endpoints. Maximum of 10 creator IDs per request.
+    employeeId:
+      name: employeeId
+      in: query
+      schema:
+        type: number
+      description: Unique identifier for the employee. Required for employee-creator assignment queries.
+      required: true
+    employeeIds:
+      name: employeeIds
+      in: query
+      schema:
+        type: array
+        items:
+          type: number
+        format: number
+        maxItems: 100
+        minItems: 1
+      description: A list of employee IDs to filter by.
+      required: true
+    optionalEmployeeId:
+      name: employeeId
+      in: query
+      required: false
+      schema:
+        type: number
+      description: Unique identifier for the employee. Optional filter for message endpoints.
+    cursor:
+      name: cursor
+      in: query
+      required: false
+      schema:
+        type: number
+      description: Pagination cursor for retrieving next page of results
+    limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: number
+        maximum: 100
+        exclusiveMinimum: 0
+        default: 10
+      description: Maximum number of records to return.
+    startTime:
+      name: startTime
+      in: query
+      schema:
+        type: string
+        example: '"1704067200000" | "2024-01-01T00:00:00Z" | "2024-01-01T00:00:00.000Z"'
+      description: The start time for record list. We accept **unix timestamp in milliseconds** and **ISO 8601 date-time in UTC+0**. Query range is limited to 31 days per request.
+      required: true
+    endTime:
+      name: endTime
+      in: query
+      schema:
+        type: string
+        description: |
+          The inclusive end time for filtering records, based on the creation time.
+          **Accepted Formats:**
+          1.  Unix millisecond timestamp (e.g., `1706745599000`)
+          2.  ISO 8601 date-time in UTC (e.g., `2024-01-31T23:59:59Z` or `2024-01-31T23:59:59.999Z`)
+          **Query Logic:**
+          *   If `endTime` is **not** provided, the query spans from the `startTime` to the current time.
+        example: '"1706745599000" | "2024-01-31T23:59:59Z" | "2024-01-31T23:59:59.999Z"'
+      description: The end time for record list. We accept **unix timestamp in milliseconds** and **ISO 8601 date-time in UTC+0**. Query range is limited to 31 days per request.
+      required: true
+    reportStartTime:
+      name: startTime
+      in: query
+      schema:
+        type: string
+        format: date
+        default: '{{3-day before endTime}}'
+        example: '"2024-01-01"'
+      description: The start date for record list. Accepts **ISO 8601 date format (YYYY-MM-DD)**. Query range is limited to 31 days per request and up to 366 days in the past.
+      required: true
+    reportEndTime:
+      name: endTime
+      in: query
+      schema:
+        type: string
+        format: date
+        example: '"2024-01-31"'
+      description: The end date for record list. Accepts **ISO 8601 date format (YYYY-MM-DD)**. Query range is limited to 31 days per request and up to 366 days in the past.
+      required: true
+    Authorization:
+      name: Authorization
+      in: header
+      required: true
+      schema:
+        type: string
+        default: '{{your_api_key}}'
+      description: Generated in the Infloww client's API key management page.
+    x-oid:
+      name: x-oid
+      in: header
+      required: true
+      schema:
+        type: string
+        default: '{{your_oid}}'
+      description: View in the Infloww client's API key management page.
+    linkType:
+      name: linkType
+      in: query
+      required: true
+      schema:
+        type: string
+        format: enum
+        enum:
+          - CAMPAIGN
+          - TRIAL
+          - TRACKING
+      description: We will validate the relationship between `linkType` and `platformCode`
+    status:
+      name: status
+      in: query
+      schema:
+        type: string
+        format: enum
+        enum:
+          - ACTIVE
+          - DEACTIVATED
+      description: Filter links by status. Not applicable when `linkType` is `CAMPAIGN`. (V1.4)
+    employeeIds-10limit:
+      name: employeeIds
+      in: query
+      required: true
+      schema:
+        type: array
+        minLength: 0
+        maxLength: 10
+        format: number
+        minItems: 1
+        maxItems: 10
+      description: A list of employee IDs to filter by.
+  responses:
+    '400':
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                errorMessage: limit must be less than or equal to 100
+            properties:
+              errorMessage:
+                type: string
+                description: Detail error message.
+          examples:
+            Example 1:
+              value:
+                errorMessage: limit must be less than or equal to 100
+      headers: {}
+    '401':
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                errorMessage: invalid api key
+            properties:
+              errorMessage:
+                type: string
+                description: |
+                  Detail error message.
+          examples:
+            Example 1:
+              value:
+                errorMessage: invalid api key
+    '403':
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                errorMessage: Your ip address is not allowed
+            properties:
+              errorMessage:
+                type: string
+                description: Detail error message.
+          examples:
+            Example 1:
+              value:
+                errorMessage: Your ip address is not allowed
+    '429':
+      description: Too Many Requests
+      content:
+        application/json:
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                errorMessage: Your ip address is not allowed
+            properties:
+              errorMessage:
+                type: string
+                description: Detail error message.
+          examples:
+            Example 1:
+              value:
+                errorMessage: Too Many Requests
+    '500':
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+            x-examples:
+              Example 1:
+                errorMessage: Internal Server Error
+            properties:
+              errorMessage:
+                type: string
+                description: Detail error message.
+          examples:
+            Example 1:
+              value:
+                errorMessage: Internal Server Error
+  securitySchemes: {}
+tags:
+  - name: Creator Scope
+    description: Endpoints that require creator-level API key permissions. Access is scoped to specific creators configured in your API key settings.
+  - name: Employee Scope
+    description: Endpoints that require employee-level API key permissions. Access is scoped to specific employees configured in your API key settings.
+  - name: Organization scope
+    description: 'V1.4: Endpoints that require agency-level API key permissions. Access is scoped to the entire agency.'
+x-internal: false

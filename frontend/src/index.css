@@ -1,0 +1,110 @@
+@import "tailwindcss";
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* Colours are theme variables: Tailwind utilities (bg-card, text-ink-2, …) resolve to the
+   active theme set on <html data-theme>. Light is the default. */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --color-bg: var(--t-bg);
+  --color-sidebar: var(--t-sidebar);
+  --color-card: var(--t-card);
+  --color-card-2: var(--t-card-2);
+  --color-line: var(--t-line);
+  --color-line-2: var(--t-line-2);
+  --color-ink: var(--t-ink);
+  --color-ink-2: var(--t-ink-2);
+  --color-ink-3: var(--t-ink-3);
+  --color-accent: var(--t-accent);
+  --color-accent-2: var(--t-accent-2);
+  --color-good: var(--t-good);
+  --color-bad: var(--t-bad);
+  --color-warn: var(--t-warn);
+  --color-s1: var(--t-s1);
+  --color-s2: var(--t-s2);
+  --color-s3: var(--t-s3);
+  --color-s4: var(--t-s4);
+  --color-s5: var(--t-s5);
+  --color-s6: var(--t-s6);
+  --color-s7: var(--t-s7);
+  --color-s8: var(--t-s8);
+}
+
+:root {
+  color-scheme: light;
+  --t-bg: #f3f5fa;
+  --t-sidebar: #ffffff;
+  --t-card: #ffffff;
+  --t-card-2: #f6f7fb;
+  --t-line: #e9ecf3;
+  --t-line-2: #dde1eb;
+  --t-ink: #101828;
+  --t-ink-2: #475467;
+  --t-ink-3: #8a93a6;
+  --t-accent: #4f46e5;
+  --t-accent-2: #4338ca;
+  --t-good: #15803d;
+  --t-bad: #dc2626;
+  --t-warn: #b45309;
+  /* validated categorical series — light steps (surface #ffffff) */
+  --t-s1: #2a78d6; --t-s2: #eb6834; --t-s3: #1baf7a; --t-s4: #eda100;
+  --t-s5: #e87ba4; --t-s6: #008300; --t-s7: #6250d6; --t-s8: #e34948;
+  --t-grid: #eef0f5;
+  --t-axis: #8a93a6;
+  --t-cursor: #c9cee0;
+  --t-unknown: #98a2b3;
+  --t-track: #eef0f6;
+  --t-shadow: 0 1px 2px rgba(16, 24, 40, 0.04), 0 6px 20px -6px rgba(16, 24, 40, 0.08);
+  --t-skel-a: #eef0f5; --t-skel-b: #f7f8fb;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --t-bg: #0a0e1a;
+  --t-sidebar: #0d1222;
+  --t-card: #121829;
+  --t-card-2: #171e33;
+  --t-line: #222b45;
+  --t-line-2: #2c3657;
+  --t-ink: #eef0f7;
+  --t-ink-2: #aab1c8;
+  --t-ink-3: #7c84a0;
+  --t-accent: #6d5dfc;
+  --t-accent-2: #9d8cff;
+  --t-good: #22c55e;
+  --t-bad: #f05252;
+  --t-warn: #fab219;
+  /* validated categorical series — dark steps (surface #121829) */
+  --t-s1: #3987e5; --t-s2: #d95926; --t-s3: #199e70; --t-s4: #c98500;
+  --t-s5: #d55181; --t-s6: #0ca30c; --t-s7: #9085e9; --t-s8: #e66767;
+  --t-grid: #1e2640;
+  --t-axis: #727a96;
+  --t-cursor: #3b4569;
+  --t-unknown: #5b6380;
+  --t-track: rgba(255, 255, 255, 0.05);
+  --t-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.03) inset;
+  --t-skel-a: #161d31; --t-skel-b: #1d2540;
+}
+
+html, body, #root { height: 100%; }
+body { background: var(--color-bg); color: var(--color-ink); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
+.tabular { font-variant-numeric: tabular-nums; }
+::selection { background: color-mix(in oklab, var(--color-accent) 25%, transparent); }
+* { scrollbar-width: thin; scrollbar-color: var(--t-line-2) transparent; }
+.recharts-cartesian-grid line { stroke: var(--t-grid); }
+.recharts-text { fill: var(--t-axis); font-size: 11px; }
+.recharts-tooltip-cursor { fill: color-mix(in oklab, var(--color-accent) 6%, transparent); }
+@keyframes shimmer { 0% { background-position: -400px 0 } 100% { background-position: 400px 0 } }
+.skeleton { background: linear-gradient(90deg, var(--t-skel-a) 0px, var(--t-skel-b) 80px, var(--t-skel-a) 160px); background-size: 800px 100%; animation: shimmer 1.4s linear infinite; border-radius: 12px; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+.rise { animation: rise .35s ease-out both; }
+@media (prefers-reduced-motion: reduce) { .rise, .skeleton { animation: none; } }
+
+@layer components {
+  .card { @apply rounded-2xl border border-line bg-card; box-shadow: var(--t-shadow); }
+  .btn { @apply inline-flex items-center gap-1.5 rounded-xl border border-line-2 bg-card px-3 py-2 text-[13px] font-medium text-ink-2 transition-colors hover:border-accent/50 hover:text-ink disabled:opacity-50 disabled:pointer-events-none; }
+  .btn-primary { @apply inline-flex items-center gap-1.5 rounded-xl bg-accent px-3.5 py-2 text-[13px] font-medium text-white shadow-sm shadow-accent/30 transition-colors hover:bg-accent-2 disabled:opacity-50 disabled:pointer-events-none; }
+  .btn-icon { @apply inline-grid size-9 place-items-center rounded-xl border border-line-2 bg-card text-ink-2 transition-colors hover:text-ink hover:border-accent/40 disabled:opacity-40 disabled:pointer-events-none; }
+  .input { @apply rounded-xl border border-line-2 bg-card px-3 py-2 text-[13px] text-ink placeholder:text-ink-3 outline-none focus:border-accent/70 focus:ring-4 focus:ring-accent/10; }
+  .link { @apply font-medium text-accent hover:underline underline-offset-2; }
+}
