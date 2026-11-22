@@ -6,5 +6,9 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: { proxy: { '/api': 'http://127.0.0.1:8000' } },
-  build: { chunkSizeWarningLimit: 900 },
+  build: {
+    chunkSizeWarningLimit: 900,
+    // VITE_STATIC builds a single-file snapshot (scripts/build-static.mjs), so no lazy chunks.
+    rollupOptions: (globalThis as any).process?.env?.VITE_STATIC ? { output: { inlineDynamicImports: true } } : {},
+  },
 })

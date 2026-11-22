@@ -10,7 +10,8 @@ export const PRESETS: { key: Preset; label: string }[] = [
 ]
 
 const iso = (d: Date) => d.toISOString().slice(0, 10)
-function utcToday() { const n = new Date(); return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate())) }
+// A static snapshot pins "today" to its capture date so its preset ranges match the recorded data.
+function utcToday() { const a = (globalThis as any).__SNAPSHOT_TODAY__; const n = a ? new Date(a) : new Date(); return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate())) }
 function addDays(d: Date, n: number) { const x = new Date(d); x.setUTCDate(x.getUTCDate() + n); return x }
 
 export function presetRange(p: Preset): { start: string; end: string } {
