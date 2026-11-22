@@ -19,7 +19,7 @@ for (const r of [...ROUTES, 'DETAIL_CREATOR', 'DETAIL_CHATTER']) {
   if (r === 'DETAIL_CREATOR' || r === 'DETAIL_CHATTER') {
     await page.goto(file + '#' + (r === 'DETAIL_CREATOR' ? '/creators' : '/chatters')); await page.waitForTimeout(1500)
     const kind = r === 'DETAIL_CREATOR' ? 'creators' : 'chatters'
-    const ids = await page.evaluate(k => { const S = JSON.parse(document.getElementById('snapshot-data').textContent)
+    const ids = await page.evaluate(async k => { const S = await window.__SNAPSHOT__
       return Object.keys(S.keys).map(x => (x.match(new RegExp('^/api/' + (k === 'creators' ? 'creators' : 'employees') + '/(\\d+)\\?')) || [])[1]).filter(Boolean) }, kind)
     if (!ids.length) { report(false, `${kind} detail: none in snapshot`); continue }
     route = `/${kind}/${ids[0]}`

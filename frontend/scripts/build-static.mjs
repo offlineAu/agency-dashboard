@@ -3,6 +3,7 @@
 //   node scripts/build-static.mjs <snapshot.json> <out.html>
 // The output contains real agency data: keep it private and out of git.
 import { execSync } from 'node:child_process'
+import { gzipSync } from 'node:zlib'
 import { readFileSync, writeFileSync, readdirSync, rmSync } from 'node:fs'
 
 const [snapPath, outPath] = process.argv.slice(2)
@@ -22,7 +23,14 @@ const label = captured.toLocaleString('en-GB', { timeZone: 'UTC', day: 'numeric'
 const shim = `
 window.__SNAPSHOT_TODAY__ = ${JSON.stringify(snap.today + 'T12:00:00Z')};
 (function () {
-  var S = JSON.parse(document.getElementById('snapshot-data').textContent);
+  // Data is gzip + base64 to keep the file small; the browser's DecompressionStream unpacks it once.
+  var S = null;
+  var ready = window.__SNAPSHOT__ = (async function () {
+    var b64 = document.getElementById('snapshot-data').textContent.trim(), bin = atob(b64), u8 = new Uint8Array(bin.length);
+    for (var j = 0; j < bin.length; j++) u8[j] = bin.charCodeAt(j);
+    var text = await new Response(new Blob([u8]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+    return (S = JSON.parse(text));
+  })();
   var realFetch = window.fetch.bind(window);
   function key(u) {
     var x = new URL(u, 'http://snapshot.local'); var q = Array.from(x.searchParams.entries()).sort(function (a, b) { return a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0 });
@@ -34,12 +42,15 @@ window.__SNAPSHOT_TODAY__ = ${JSON.stringify(snap.today + 'T12:00:00Z')};
     if (!/^\\/api\\//.test(url)) return realFetch(input, init);
     var method = ((init && init.method) || 'GET').toUpperCase();
     if (method !== 'GET') return reply(403, { detail: 'This is a read-only snapshot. Changes can only be made on the live dashboard.' });
+    return ready.then(function () { return answer(url) });
+  };
+  function answer(url) {
     var i = S.keys[key(url)]; var hit = i === undefined ? undefined : S.bodies[i];
     if (!hit) return reply(404, { detail: 'This view isn\\'t included in the snapshot. Try another date range, or open the live dashboard.' });
     var body = JSON.parse(JSON.stringify(hit)); var m = S.metas[key(url)]; if (m) body = Object.assign({ meta: JSON.parse(JSON.stringify(m)) }, body);
     if (body && typeof body === 'object') { if ('syncing' in body) body.syncing = false; if (body.meta && typeof body.meta === 'object') body.meta.syncing = false }
     return reply(200, body);
-  };
+  }
   document.addEventListener('DOMContentLoaded', function () {
     var b = document.createElement('div');
     b.textContent = 'Snapshot · ' + ${JSON.stringify(label)};
@@ -64,7 +75,7 @@ html = html.replace(/<script type="module"[^>]*src="[^"]+"[^>]*><\/script>\s*/g,
 html = html.replace(/<link rel="stylesheet"[^>]*href="\/assets\/[^"]+"[^>]*>\s*/g, '')
 const head = `<meta name="snapshot-captured" content="${snap.captured_at}" />
     <style>${css.map(f => readFileSync('dist-static/assets/' + f, 'utf8')).join('\n')}</style>
-    <script type="application/json" id="snapshot-data">${safe(JSON.stringify(packed))}</script>
+    <script type="text/plain" id="snapshot-data">${gzipSync(JSON.stringify(packed), { level: 9 }).toString('base64')}</script>
     <script>${safe(shim)}</script>
   </head>`
 html = html.replace('</head>', () => head) // function form: the data may contain $' / $& patterns
